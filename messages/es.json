@@ -1,0 +1,134 @@
+{
+  "nav": {
+    "work": "Trabajos",
+    "services": "Servicios",
+    "process": "Proceso",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "eyebrow": "Disponible para nuevos proyectos · Q2 2026",
+    "tagline1": "Tu visión.",
+    "tagline2": "Nuestra ingeniería.",
+    "description": "Construimos software, webs y automatizaciones a una velocidad que no debería ser posible.",
+    "cta": "Empezá tu briefing",
+    "scrollLabel": "Scroll",
+    "locationLine1": "Buenos Aires — Argentina",
+    "locationLine2": "34°36'S · 58°22'W",
+    "studio": "VYZON STUDIO"
+  },
+  "manifesto": {
+    "label": "Manifiesto",
+    "headline": "Lo que creemos.",
+    "principleLabel": "Principio",
+    "p1Title": "No vendemos horas.",
+    "p1Sub": "Vendemos resultados.",
+    "p1Body": "Facturamos por lo que entregamos, no por el tiempo que tardamos. Eso cambia todo: los incentivos, la velocidad, la calidad. Si algo demora más de lo previsto, es nuestro problema, no el tuyo.",
+    "p2Title": "3 meses.",
+    "p2Sub": "Ahora son 3 semanas.",
+    "p2Body": "El calendario de una agencia tradicional no está diseñado para tu velocidad. El nuestro sí. Usamos ingeniería de punta y procesos que eliminan fricción sin cortar esquinas. Rapidez no es lo opuesto de calidad — es la misma cosa, hecha bien.",
+    "p3Title": "Tecnología premium.",
+    "p3Sub": "Sin la complejidad.",
+    "p3Body": "Cada proyecto usa el stack correcto para el problema, no el más de moda. Vos recibís un producto que funciona, escala y podés mantener. No necesitás entender cómo funciona por dentro para confiar en que funciona."
+  },
+  "briefing": {
+    "label": "Briefing IA",
+    "headline": "Contanos tu proyecto en una frase.",
+    "terminalLabel": "VYZON BRIEFING // v1.0",
+    "placeholder": "Ej: Quiero una app para gestionar turnos de mi consultorio médico...",
+    "analyzeButton": "Analizar proyecto",
+    "analyzingButton": "Analizando...",
+    "processingSteps": [
+      "→ Clasificando tipo de proyecto...",
+      "→ Definiendo stack técnico...",
+      "→ Estimando timeline e inversión..."
+    ],
+    "resultTitle": "DOCUMENTO TÉCNICO VYZON",
+    "labelType": "Tipo de proyecto",
+    "labelStack": "Stack recomendado",
+    "labelTimeline": "Timeline estimado",
+    "labelInvestment": "Inversión estimada",
+    "labelDescription": "Resumen técnico",
+    "labelSteps": "Próximos pasos",
+    "disclaimer": "Esto es un análisis preliminar. La propuesta final se ajusta tras una llamada de 20 minutos.",
+    "ctaButton": "Hablemos",
+    "errorMessage": "× Error al analizar. Intentá de nuevo o escribinos directo."
+  },
+  "works": {
+    "label": "Trabajos",
+    "count": "03 / 03",
+    "headline": "Tres piezas. Tres mundos.",
+    "viewProject": "Ver proyecto",
+    "visitSite": "Visitar sitio",
+    "explore": "Explorar sitio",
+    "modalChallenge": "El desafío",
+    "modalSolution": "La solución",
+    "modalResult": "Resultado",
+    "modalStack": "Stack técnico",
+    "modalTimeline": "Timeline",
+    "modalDelivered": "Entregado en {days} días",
+    "modalYear": "Año",
+    "modalClose": "Cerrar",
+    "modalPrev": "Anterior",
+    "modalNext": "Siguiente"
+  },
+  "services": {
+    "label": "Servicios",
+    "headline": "¿Qué construimos?",
+    "s1Name": "Web Premium",
+    "s1Desc": "Sitios y aplicaciones web de alta gama. Animaciones cinematográficas, performance impecable.",
+    "s1Price": "USD 500 – 8.000",
+    "s2Name": "Software a Medida",
+    "s2Desc": "MVPs y productos completos. De la idea al producto funcional en semanas.",
+    "s2Price": "USD 3.000 – 10.000",
+    "s3Name": "Automatizaciones",
+    "s3Desc": "Workflows que eliminan tareas repetitivas y liberan tiempo para lo que importa.",
+    "s3Price": "USD 800 – 4.000",
+    "s4Name": "Mantenimiento Premium",
+    "s4Desc": "Soporte continuo, mejoras mensuales, evolución constante de tu producto.",
+    "s4Price": "USD 100 – 1.500 / mes",
+    "learnMore": "Conocer más"
+  },
+  "process": {
+    "label": "Proceso",
+    "headline": "Sprint Compacto",
+    "subtitle": "5 fases. 7 a 14 días.",
+    "phases": [
+      { "num": "01", "name": "Discovery",   "desc": "Brief, alcance y propuesta.",              "duration": "1d" },
+      { "num": "02", "name": "Diseño",      "desc": "Mockups, guía de estilo, aprobación.",     "duration": "2–3d" },
+      { "num": "03", "name": "Desarrollo",  "desc": "Código limpio, performance, animaciones.", "duration": "3–7d" },
+      { "num": "04", "name": "QA",          "desc": "Testing, optimización, ajustes.",          "duration": "1–2d" },
+      { "num": "05", "name": "Entrega",     "desc": "Deploy, documentación y soporte.",         "duration": "1d" }
+    ]
+  },
+  "closing": {
+    "line1": "El futuro no se espera.",
+    "line2": "Se construye.",
+    "subtitle": "Si tenés un proyecto en mente, este es el momento. Presupuesto claro, tiempos reales, resultado sin excusas.",
+    "cta": "Hablemos"
+  },
+  "footer": {
+    "tagline": "Tu visión. Nuestra ingeniería.",
+    "colWork": "Trabajos",
+    "colStudio": "Estudio",
+    "colContact": "Contacto",
+    "studioLinks": ["Servicios", "Proceso", "Contacto"],
+    "email": "hola@vyzon.dev",
+    "location": "Buenos Aires, Argentina",
+    "copyright": "© 2026 VYZON",
+    "rights": "MMXXVI · ALL RIGHTS RESERVED"
+  },
+  "work": {
+    "breadcrumbBase": "trabajo",
+    "challengeLabel": "El desafío",
+    "solutionLabel": "La solución",
+    "stackLabel": "Stack técnico",
+    "resultLabel": "Resultado",
+    "yearLabel": "Año",
+    "categoryLabel": "Categoría",
+    "clientLabel": "Cliente",
+    "clientValue": "Confidencial",
+    "visitSite": "Visitar sitio",
+    "prevProject": "Proyecto anterior",
+    "nextProject": "Proyecto siguiente"
+  }
+}
