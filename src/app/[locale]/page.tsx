@@ -1,13 +1,32 @@
 import type { Metadata } from 'next'
 import type { Locale } from '@/types'
+import dynamic from 'next/dynamic'
 import { HeroSection }     from '@/components/sections/HeroSection'
-import { ManifestoSection } from '@/components/sections/ManifestoSection'
-import { BriefingSection }  from '@/components/sections/BriefingSection'
-import { WorksSection }     from '@/components/sections/WorksSection'
-import { ServicesSection }  from '@/components/sections/ServicesSection'
-import { ProcesoSection }   from '@/components/sections/ProcesoSection'
-import { CierreSection }    from '@/components/sections/CierreSection'
-import { Footer }           from '@/components/layout/Footer'
+import { ServicesSection } from '@/components/sections/ServicesSection'
+import { Footer }          from '@/components/layout/Footer'
+
+// Secciones pesadas (canvas, GSAP pins, scrub) — carga diferida, cliente-only.
+// No bloquean el bundle inicial; Hero y Nav hidratán primero.
+const ManifestoSection = dynamic(
+  () => import('@/components/sections/ManifestoSection').then(m => m.ManifestoSection),
+  { ssr: false }
+)
+const BriefingSection = dynamic(
+  () => import('@/components/sections/BriefingSection').then(m => m.BriefingSection),
+  { ssr: false }
+)
+const WorksSection = dynamic(
+  () => import('@/components/sections/WorksSection').then(m => m.WorksSection),
+  { ssr: false }
+)
+const ProcesoSection = dynamic(
+  () => import('@/components/sections/ProcesoSection').then(m => m.ProcesoSection),
+  { ssr: false }
+)
+const CierreSection = dynamic(
+  () => import('@/components/sections/CierreSection').then(m => m.CierreSection),
+  { ssr: false }
+)
 
 interface HomePageProps {
   params: Promise<{ locale: Locale }>

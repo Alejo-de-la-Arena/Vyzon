@@ -12,21 +12,22 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 
-// SplitText is a Club GSAP plugin.
-// If using GSAP free tier, replace SplitText usage with the `split-type` npm package.
-// Uncomment when Club GSAP is available:
-// import { SplitText } from 'gsap/SplitText'
+// VYZON usa reveals por línea entera (fade + slide-up), no SplitText.
+// Más fluido visualmente y evita complejidad por nada.
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
-// gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP)
 
 // ── Easing presets ────────────────────────────────────────────────
+// Emil rule: NO elastic/bounce. Ease-out only for enters/exits.
+// Custom curves over CSS defaults — these have the "punch" that
+// makes animations feel intentional rather than accidental.
 export const EASE = {
-  expo:    'expo.out',            // Suave, premium — el más usado
-  power3:  'power3.out',          // Alternativa para elementos más pesados
-  elastic: 'elastic.out(1, 0.5)', // Micro-interactions de botones
-  back:    'back.out(1.7)',        // Cursor, rebounds
-  linear:  'none',                // Parallax, scrub
+  expo:    'expo.out',                             // Premium, suave — el más usado
+  power3:  'power3.out',                           // Para elementos más pesados
+  power4:  'power4.out',                           // CTA rebounds, entrances decisivas
+  smooth:  'cubic-bezier(0.25, 1, 0.5, 1)',        // ease-out-quart — smooth
+  snappy:  'cubic-bezier(0.16, 1, 0.3, 1)',        // ease-out-expo — decisive
+  linear:  'none',                                 // Parallax, scrub
 } as const
 
 // ── Duration presets (segundos) ───────────────────────────────────

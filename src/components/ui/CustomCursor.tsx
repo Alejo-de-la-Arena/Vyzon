@@ -1,153 +1,190 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { gsap, isTouchDevice } from '@/lib/gsap'
+import { gsap } from '@/lib/gsap'
 
 /**
- * CustomCursor — cursor personalizado VYZON.
- * Dot interno (6px cyan, mix-blend-mode: difference) +
- * Ring exterior (32px con lag lerp 0.12).
+ * CustomCursor — VYZON crosshair edition.
  *
- * Se desactiva automáticamente en:
- *  - Dispositivos touch (pointer: coarse)
- *  - prefers-reduced-motion
+ *   Crosshair (16px, white + mix-blend-mode:difference) → tracks mouse 1:1
+ *   Square    (36px, cyan outline)                       → follows with lerp (delay)
+ *   Label     (cyan chip)                                → shows data-cursor-label on hover
  *
- * Modos según data-cursor attribute:
- *  - default: ring 32px
- *  - [data-cursor="cta"]: ring 50px + label "→"
- *  - [data-cursor="view"]: ring 70px + bg cyan + label "VER"
+ * Hover:
+ *   - Square: scale 1.8 + rotate 45° → diamond
+ *   - Crosshair: scale 0.6 + rotate 90°
+ *   - Label: fades in with the data-cursor-label text
+ *
+ * Off on touch / no-fine-pointer / reduced-motion.
  */
 export function CustomCursor() {
-  const dotRef   = useRef<HTMLDivElement>(null)
-  const ringRef  = useRef<HTMLDivElement>(null)
-  const labelRef = useRef<HTMLSpanElement>(null)
+  const crosshairRef = useRef<HTMLDivElement>(null)
+  const squareRef    = useRef<HTMLDivElement>(null)
+  const labelRef     = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Skip on touch and reduced motion
-    if (isTouchDevice()) return
+    if (typeof window === 'undefined') return
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-    const dot   = dotRef.current!
-    const ring  = ringRef.current!
-    const label = labelRef.current!
+    const cross = crosshairRef.current
+    const sq    = squareRef.current
+    const lb    = labelRef.current
+    if (!cross || !sq || !lb) return
 
-    let mouseX = 0, mouseY = 0
-    let ringX  = 0, ringY  = 0
-    const LAG  = 0.12
+    // Hide native cursor everywhere
+    const styleEl = document.createElement('style')
+    styleEl.textContent = `*, *::before, *::after { cursor: none !important; }`
+    document.head.appendChild(styleEl)
 
-    // Mostrar cursores al primer movimiento
-    gsap.set([dot, ring], { opacity: 0 })
+    // Initial hidden — appear on first move
+    gsap.set([cross, sq, lb], { opacity: 0 })
 
-    const onMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX
-      mouseY = e.clientY
-      gsap.set(dot, { x: mouseX - 3, y: mouseY - 3, opacity: 1 })
-      gsap.set(ring, { opacity: 1 })
+    // Square eased follow
+    const sqXTo = gsap.quickTo(sq, 'x', { duration: 0.5, ease: 'power3' })
+    const sqYTo = gsap.quickTo(sq, 'y', { duration: 0.5, ease: 'power3' })
+
+    // Label follows with shorter delay
+    const lbXTo = gsap.quickTo(lb, 'x', { duration: 0.3, ease: 'power2' })
+    const lbYTo = gsap.quickTo(lb, 'y', { duration: 0.3, ease: 'power2' })
+
+    let firstMove = true
+    const onMove = (e: MouseEvent) => {
+      gsap.set(cross, { x: e.clientX, y: e.clientY })
+      sqXTo(e.clientX)
+      sqYTo(e.clientY)
+      lbXTo(e.clientX)
+      lbYTo(e.clientY)
+      if (firstMove) {
+        gsap.to([cross, sq], { opacity: 1, duration: 0.3 })
+        firstMove = false
+      }
     }
 
-    document.addEventListener('mousemove', onMouseMove)
+    // Emil: no back.out (bounce). power4.out da el snap-back decisivo sin overshoot.
+    const onDown = () => gsap.to(sq, { scale: 0.85, duration: 0.12, ease: 'power2.out' })
+    const onUp   = () => gsap.to(sq, { scale: 1,    duration: 0.3,  ease: 'power4.out' })
 
-    // Ring lag loop
-    const tickerId = gsap.ticker.add(() => {
-      ringX += (mouseX - ringX) * LAG
-      ringY += (mouseY - ringY) * LAG
-      gsap.set(ring, { x: ringX - 16, y: ringY - 16 })
-    })
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('mouseup',   onUp)
 
-    // Click feedback
-    const onMouseDown = () => gsap.to(ring, { scale: 0.7, duration: 0.1 })
-    const onMouseUp   = () => gsap.to(ring, { scale: 1, duration: 0.3, ease: 'back.out(1.7)' })
-    document.addEventListener('mousedown', onMouseDown)
-    document.addEventListener('mouseup', onMouseUp)
-
-    // Reset helper
-    function resetCursor() {
-      gsap.to(ring, {
-        width: 32, height: 32,
-        backgroundColor: 'transparent',
-        borderColor: 'rgba(0, 229, 255, 0.5)',
-        duration: 0.4, ease: 'expo.out',
+    function applyHoverState(target: HTMLElement) {
+      const text = target.getAttribute('data-cursor-label') || ''
+      gsap.to(sq, {
+        scale: 1.8, rotation: 45,
+        borderColor: '#00E5FF',
+        duration: 0.4, ease: 'power2.out',
       })
-      label.textContent = ''
-      label.style.color = ''
+      gsap.to(cross, {
+        scale: 0.6, rotation: 90,
+        duration: 0.3,
+      })
+      if (text) {
+        lb!.textContent = text
+        gsap.to(lb, { opacity: 1, duration: 0.2 })
+      }
+    }
+    function resetHoverState() {
+      gsap.to(sq, {
+        scale: 1, rotation: 0,
+        borderColor: 'rgba(0, 229, 255, 0.4)',
+        duration: 0.4, ease: 'power2.out',
+      })
+      gsap.to(cross, {
+        scale: 1, rotation: 0,
+        duration: 0.3,
+      })
+      gsap.to(lb, { opacity: 0, duration: 0.15 })
     }
 
-    // Hover: links y botones genéricos
     function setupHoverTargets() {
-      // Generic interactive elements
-      document.querySelectorAll<HTMLElement>('a, button, [role="button"]').forEach(el => {
-        if (el.dataset.cursorSetup) return
-        el.dataset.cursorSetup = '1'
-
-        el.addEventListener('mouseenter', () => {
-          const mode = el.dataset.cursor
-
-          if (mode === 'cta') {
-            // Ring fills 20% cyan + grows + arrow label
-            gsap.to(ring, {
-              width: 50, height: 50,
-              backgroundColor: 'rgba(0, 229, 255, 0.2)',
-              borderColor: '#00E5FF',
-              duration: 0.3, ease: 'expo.out',
-            })
-            label.textContent = '→'
-            label.style.color = '#00E5FF'
-          } else if (mode === 'view') {
-            // Project visuals: large ring with center dot
-            gsap.to(ring, {
-              width: 70, height: 70,
-              backgroundColor: 'rgba(0, 229, 255, 0.08)',
-              borderColor: '#00E5FF',
-              duration: 0.3, ease: 'expo.out',
-            })
-            label.textContent = '●'
-            label.style.color = '#00E5FF'
-          } else {
-            gsap.to(ring, { width: 30, height: 30, borderColor: 'rgba(0, 229, 255, 0.8)', duration: 0.3 })
-          }
-        })
-
-        el.addEventListener('mouseleave', resetCursor)
+      const targets = document.querySelectorAll<HTMLElement>('a, button, [role="button"], [data-cursor], [data-cursor-label]')
+      targets.forEach(el => {
+        if (el.dataset.cursorBound === '1') return
+        el.dataset.cursorBound = '1'
+        el.addEventListener('mouseenter', () => applyHoverState(el))
+        el.addEventListener('mouseleave', resetHoverState)
       })
     }
-
-    // Setup inicial + observer para elementos dinámicos
     setupHoverTargets()
-
-    const mutationObserver = new MutationObserver(() => setupHoverTargets())
-    mutationObserver.observe(document.body, { childList: true, subtree: true })
+    const observer = new MutationObserver(setupHoverTargets)
+    observer.observe(document.body, { childList: true, subtree: true })
 
     return () => {
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mousedown', onMouseDown)
-      document.removeEventListener('mouseup', onMouseUp)
-      gsap.ticker.remove(tickerId)
-      mutationObserver.disconnect()
+      document.head.removeChild(styleEl)
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('mouseup',   onUp)
+      observer.disconnect()
     }
   }, [])
 
   return (
     <>
-      {/* Dot interno */}
+      {/* Crosshair — sigue al mouse 1:1, mix-blend-mode difference */}
       <div
-        ref={dotRef}
+        ref={crosshairRef}
         aria-hidden="true"
-        className="pointer-events-none fixed top-0 left-0 z-[9999] w-[6px] h-[6px] rounded-full bg-cyan"
-        style={{ mixBlendMode: 'difference' }}
-      />
-
-      {/* Ring exterior con lag */}
-      <div
-        ref={ringRef}
-        aria-hidden="true"
-        className="pointer-events-none fixed top-0 left-0 z-[9998] w-8 h-8 rounded-full border border-cyan/50 flex items-center justify-center"
-        style={{ transition: 'width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s' }}
+        className="vyzon-cursor-cross fixed top-0 left-0 pointer-events-none z-[9999]"
+        style={{
+          width:        16,
+          height:       16,
+          transform:    'translate(-50%, -50%)',
+          mixBlendMode: 'difference',
+        }}
       >
+        {/* horizontal line */}
         <span
-          ref={labelRef}
-          className="font-mono text-[10px] font-medium select-none"
+          className="absolute top-1/2 left-0 w-full bg-white"
+          style={{ height: 1, transform: 'translateY(-50%)' }}
+        />
+        {/* vertical line */}
+        <span
+          className="absolute left-1/2 top-0 h-full bg-white"
+          style={{ width: 1, transform: 'translateX(-50%)' }}
         />
       </div>
+
+      {/* Square outline — sigue con delay */}
+      <div
+        ref={squareRef}
+        aria-hidden="true"
+        className="vyzon-cursor-sq fixed top-0 left-0 pointer-events-none z-[9998]"
+        style={{
+          width:        36,
+          height:       36,
+          border:       '1px solid rgba(0, 229, 255, 0.4)',
+          transform:    'translate(-50%, -50%)',
+        }}
+      />
+
+      {/* Label chip — contextual */}
+      <div
+        ref={labelRef}
+        aria-hidden="true"
+        className="vyzon-cursor-label fixed top-0 left-0 pointer-events-none z-[9997] font-mono opacity-0"
+        style={{
+          padding:      '4px 8px',
+          background:   '#00E5FF',
+          color:        '#000',
+          fontSize:     10,
+          letterSpacing:'0.15em',
+          textTransform:'uppercase',
+          translate:    '20px 20px',
+        }}
+      />
+
+      {/* Hide on touch / coarse pointer / reduced motion */}
+      <style jsx>{`
+        @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+          :global(.vyzon-cursor-cross),
+          :global(.vyzon-cursor-sq),
+          :global(.vyzon-cursor-label) {
+            display: none !important;
+          }
+        }
+      `}</style>
     </>
   )
 }

@@ -68,7 +68,14 @@ function HeroBg() {
     }))
 
     let raf = 0
+    // Pausa el loop cuando el hero no está en el viewport
+    let visible = true
+    const visObs = new IntersectionObserver(([e]) => { visible = e.isIntersecting }, { threshold: 0 })
+    visObs.observe(canvas)
+
     const loop = () => {
+      raf = requestAnimationFrame(loop)
+      if (!visible) return
       const w = canvas.offsetWidth
       const h = canvas.offsetHeight
       ctx.clearRect(0, 0, w, h)
@@ -103,8 +110,6 @@ function HeroBg() {
         }
       }
       ctx.globalAlpha = 1
-
-      raf = requestAnimationFrame(loop)
     }
     if (!reduced) raf = requestAnimationFrame(loop)
     else loop()
@@ -112,6 +117,7 @@ function HeroBg() {
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
+      visObs.disconnect()
     }
   }, [])
 
@@ -122,12 +128,17 @@ function HeroBg() {
     if (!el) return
     let mx = 50, my = 50, cx = 50, cy = 50
     let raf = 0
+    let visible = true
+    const visObs = new IntersectionObserver(([e]) => { visible = e.isIntersecting }, { threshold: 0 })
+    visObs.observe(el)
+
     const tick = () => {
+      raf = requestAnimationFrame(tick)
+      if (!visible) return
       cx += (mx - cx) * 0.06
       cy += (my - cy) * 0.06
       el.style.setProperty('--mx', `${cx}%`)
       el.style.setProperty('--my', `${cy}%`)
-      raf = requestAnimationFrame(tick)
     }
     const onMove = (e: MouseEvent) => {
       mx = (e.clientX / window.innerWidth)  * 100
@@ -138,6 +149,7 @@ function HeroBg() {
     return () => {
       window.removeEventListener('mousemove', onMove)
       cancelAnimationFrame(raf)
+      visObs.disconnect()
     }
   }, [])
 

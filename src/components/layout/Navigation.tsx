@@ -1,17 +1,62 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
 import { LanguageToggle } from './LanguageToggle'
 import { gsap } from '@/lib/gsap'
 
+// ── Scramble text effect ─────────────────────────────────────────────
+// Resolves chars left-to-right over 8 frames (600ms total).
+// Switches font to Geist Mono while scrambling (looks technical).
+const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!?'
+
+function scrambleText(el: HTMLElement, finalText: string): void {
+  const steps        = 8
+  const stepDuration = 600 / steps
+  let   step         = 0
+
+  // Switch to mono during effect
+  const origFont = el.style.fontFamily
+  el.style.fontFamily = 'var(--font-geist-mono, ui-monospace, monospace)'
+
+  const interval = setInterval(() => {
+    step++
+    const resolved = Math.floor((step / steps) * finalText.length)
+
+    el.textContent = finalText
+      .split('')
+      .map((ch, i) => {
+        if (ch === ' ') return ' '
+        if (i < resolved)  return ch
+        return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)]
+      })
+      .join('')
+
+    if (step >= steps) {
+      clearInterval(interval)
+      el.textContent    = finalText
+      el.style.fontFamily = origFont
+    }
+  }, stepDuration)
+}
+
 export function Navigation() {
   const t      = useTranslations('nav')
   const locale = useLocale()
 
-  const [scrolled,     setScrolled]     = useState(false)
-  const [menuOpen,     setMenuOpen]     = useState(false)
+  const [scrolled,  setScrolled]  = useState(false)
+  const [menuOpen,  setMenuOpen]  = useState(false)
+
+  // Sentinel ref — IntersectionObserver instead of window scroll listener
+  // (Emil: window.addEventListener('scroll') is banned — jank-prone, no batching)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  const handleScramble = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    const el = e.currentTarget
+    const text = el.dataset.text ?? el.textContent ?? ''
+    if (text) scrambleText(el, text)
+  }, [])
 
   const localePath = locale === 'en' ? '/en' : ''
 
@@ -22,10 +67,17 @@ export function Navigation() {
     { id: 'contact',  label: t('contact'),  href: `${localePath}/#contact` },
   ]
 
+  // IntersectionObserver: sentinel placed 80px below page top.
+  // When it leaves the viewport, nav becomes opaque.
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setScrolled(!entry.isIntersecting),
+      { threshold: 0 }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
   }, [])
 
   // Lock body scroll when drawer open
@@ -34,7 +86,8 @@ export function Navigation() {
     return () => { document.body.style.overflow = '' }
   }, [menuOpen])
 
-  // Animate drawer
+  // Animate drawer — Emil: expo.out for both enter AND exit (ease-in is banned)
+  // Exit is faster than enter (400ms vs 500ms) — asymmetric enter/exit.
   useEffect(() => {
     const drawer = document.getElementById('mobile-drawer')
     if (!drawer) return
@@ -44,24 +97,35 @@ export function Navigation() {
         { x: '0%', duration: 0.5, ease: 'expo.out' }
       )
     } else {
-      gsap.to(drawer, { x: '100%', duration: 0.4, ease: 'expo.in' })
+      gsap.to(drawer, { x: '100%', duration: 0.35, ease: 'expo.out' })
     }
   }, [menuOpen])
 
   return (
     <>
+      {/* Sentinel — IntersectionObserver target. Placed 80px below top,
+          outside viewport when scrolled. Invisible, no layout cost. */}
+      <div
+        ref={sentinelRef}
+        aria-hidden="true"
+        className="absolute top-[80px] left-0 w-0 h-0 pointer-events-none overflow-hidden"
+      />
+
       <nav
         aria-label="Navegación principal"
         className={`
           fixed top-0 left-0 right-0 z-50
           flex items-center justify-between
           px-[var(--space-container)] py-6
-          transition-all duration-500
           ${scrolled
             ? 'bg-black/85 backdrop-blur-md nav-border-gradient'
             : 'bg-transparent'
           }
         `}
+        style={{
+          /* Emil: specify exact properties, never transition:all */
+          transition: 'background-color 400ms var(--ease-expo), backdrop-filter 400ms var(--ease-expo)',
+        }}
       >
         {/* Logo */}
         <Link
@@ -78,6 +142,8 @@ export function Navigation() {
             <a
               key={item.id}
               href={item.href}
+              data-text={item.label}
+              onMouseEnter={handleScramble}
               className="link-animated font-mono text-label uppercase tracking-[0.15em] text-bone-muted hover:text-bone transition-colors duration-250"
             >
               {item.label}
@@ -117,11 +183,14 @@ export function Navigation() {
         />
       )}
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — role="dialog" for a11y, design token bg (#0D0D0D) */}
       <div
         id="mobile-drawer"
-        className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-gray-900 border-l border-bone-faint/[0.08] flex flex-col pt-24 pb-12 px-8 md:hidden"
-        style={{ transform: 'translateX(100%)' }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menú de navegación"
+        className="fixed top-0 right-0 bottom-0 z-50 w-72 border-l border-bone-faint/[0.08] flex flex-col pt-24 pb-12 px-8 md:hidden"
+        style={{ transform: 'translateX(100%)', backgroundColor: 'var(--color-surface)' }}
         aria-hidden={!menuOpen}
       >
         {/* Close */}

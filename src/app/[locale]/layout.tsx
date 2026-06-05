@@ -5,9 +5,11 @@ import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
-import { LenisProvider } from '@/components/providers/LenisProvider'
-import { Navigation }    from '@/components/layout/Navigation'
-import { CustomCursor }  from '@/components/ui/CustomCursor'
+import { LenisProvider }       from '@/components/providers/LenisProvider'
+import { Navigation }          from '@/components/layout/Navigation'
+import { CustomCursor }        from '@/components/ui/CustomCursor'
+import { ScrollColorManager }  from '@/components/ui/ScrollColorManager'
+import { ScrollProgressBar }   from '@/components/ui/ScrollProgressBar'
 import type { Locale } from '@/types'
 import '../globals.css'
 
@@ -91,6 +93,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         <NextIntlClientProvider messages={messages}>
           <LenisProvider>
             <CustomCursor />
+            <ScrollProgressBar />
+            <ScrollColorManager />
             <Navigation />
             {children}
           </LenisProvider>

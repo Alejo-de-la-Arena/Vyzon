@@ -22,11 +22,12 @@ let refreshTimers: number[] = []
 
 export function createLenis(): Lenis {
   const lenis = new Lenis({
-    duration:        1.2,
+    duration:        1.0,  // reducido de 1.2 — respuesta más directa sin perder suavidad
     easing:          (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     orientation:     'vertical',
     smoothWheel:     true,
-    touchMultiplier: 2,
+    wheelMultiplier: 0.8,  // velocidad de rueda más controlada
+    touchMultiplier: 1.5,  // reducido de 2 — swipe touch más natural
   })
 
   // 1) Cada vez que Lenis hace scroll, refrescar ScrollTrigger.

@@ -27,10 +27,11 @@
   --font-sans:  var(--font-space-grotesk), system-ui, sans-serif;
   --font-mono:  var(--font-geist-mono), ui-monospace, monospace;
 
-  /* Timing */
-  --ease-expo:    cubic-bezier(0.19, 1, 0.22, 1);
-  --ease-back:    cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-smooth:  cubic-bezier(0.4, 0, 0.2, 1);
+  /* Timing — Emil rule: no bounce/elastic, always ease-out for UI */
+  --ease-expo:    cubic-bezier(0.16, 1, 0.3, 1);   /* expo.out — decisive, premium */
+  --ease-power4:  cubic-bezier(0.25, 1, 0.5, 1);   /* quart.out — smooth entrances */
+  --ease-drawer:  cubic-bezier(0.32, 0.72, 0, 1);  /* iOS-like (Ionic) for drawers */
+  --ease-smooth:  cubic-bezier(0.4, 0, 0.2, 1);    /* in-out for on-screen morphs */
   --duration-fast:   250ms;
   --duration-mid:    500ms;
   --duration-slow:   800ms;
@@ -134,6 +135,30 @@ body::after {
   padding: 0 var(--space-container);
 }
 
+/* ── Button / CTA :active feedback (Emil) ───────────────────────── */
+/* Buttons must feel responsive — scale down on press gives instant  */
+/* tactile feedback. Subtle (0.97), scales children proportionally.  */
+a[class*="cta"],
+.cierre-cta,
+.works-cta,
+button:not([disabled]) {
+  transition-property: transform, opacity, color, background-color, box-shadow;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-expo);
+}
+a[class*="cta"]:active,
+.cierre-cta:active,
+button:not([disabled]):active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  a[class*="cta"]:active,
+  .cierre-cta:active,
+  button:not([disabled]):active {
+    transform: none;
+  }
+}
+
 /* ── Link con underline animado ──────────────────────────────────── */
 .link-animated {
   position: relative;
@@ -156,6 +181,59 @@ body::after {
   transform-origin: left;
 }
 
+/* ── Section background states (referenced by ScrollColorManager) ── */
+:root {
+  --bg-hero:           #000000;
+  --bg-manifesto:      #080B12;
+  --bg-briefing:       #040404;
+  --bg-works:          #000000;
+  --bg-works-taskflow: #F0EDE6;
+  --bg-works-aura:     #060912;
+  --bg-works-obsidian: #000000;
+  --bg-services:       #0A0A0A;
+  --bg-process:        #000000;
+  --bg-close:          #000000;
+}
+
+/* ── Scroll progress bar (right edge) ───────────────────────────── */
+.scroll-progress-track {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 2px;
+  height: 100vh;
+  background: rgba(245, 240, 232, 0.06);
+  z-index: 100;
+  pointer-events: none;
+}
+.scroll-progress-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, #00E5FF, rgba(0, 229, 255, 0.5));
+  transform-origin: top center;
+  transform: scaleY(0);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.55);
+}
+
+/* ── Scanlines (Briefing IA section) ────────────────────────────── */
+.bg-scanlines::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* ── prefers-reduced-motion ──────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -168,5 +246,10 @@ body::after {
 
   body::after {
     animation: none;
+  }
+
+  .scroll-progress-track,
+  .scroll-progress-line {
+    display: none;
   }
 }

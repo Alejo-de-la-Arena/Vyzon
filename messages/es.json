@@ -49,9 +49,16 @@
     "labelInvestment": "Inversión estimada",
     "labelDescription": "Resumen técnico",
     "labelSteps": "Próximos pasos",
+    "validatingText": "Analizando tu proyecto...",
+    "generatingText": "Generando documento técnico...",
+    "continueButton": "Continuar",
+    "resetButton": "Nueva consulta",
+    "docIncluye": "Incluye",
+    "docClosure": "Pregunta de cierre",
     "disclaimer": "Esto es un análisis preliminar. La propuesta final se ajusta tras una llamada de 20 minutos.",
     "ctaButton": "Hablemos",
-    "errorMessage": "× Error al analizar. Intentá de nuevo o escribinos directo."
+    "errorMessage": "× Error al conectar. Intentá de nuevo o escribinos directo.",
+    "retryButton": "Intentar de nuevo"
   },
   "works": {
     "label": "Trabajos",

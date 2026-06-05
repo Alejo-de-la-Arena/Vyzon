@@ -49,9 +49,16 @@
     "labelInvestment": "Estimated investment",
     "labelDescription": "Technical summary",
     "labelSteps": "Next steps",
+    "validatingText": "Analyzing your project...",
+    "generatingText": "Generating technical document...",
+    "continueButton": "Continue",
+    "resetButton": "New inquiry",
+    "docIncluye": "Includes",
+    "docClosure": "Closing question",
     "disclaimer": "This is a preliminary analysis. The final proposal is adjusted after a 20-minute call.",
     "ctaButton": "Let's talk",
-    "errorMessage": "× Analysis failed. Try again or reach out directly."
+    "errorMessage": "× Connection error. Try again or reach out directly.",
+    "retryButton": "Try again"
   },
   "works": {
     "label": "Work",
