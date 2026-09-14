@@ -8,6 +8,7 @@ import { gsap, useGSAP, EASE, DURATION, prefersReducedMotion } from '@/lib/gsap'
 
 type FlowState = 'idle' | 'validating' | 'questions' | 'generating' | 'document' | 'error'
 type CanvasMode = 'idle' | 'typing' | 'processing'
+type BriefingErrorCode = 'IP_RATE_LIMITED' | 'GLOBAL_RATE_LIMITED' | 'SERVICE_UNAVAILABLE' | 'REQUEST_TIMEOUT' | 'UNKNOWN'
 
 interface TechnicalDocument {
   tipo:               string
@@ -36,6 +37,31 @@ const MAX_BRIEF  = 500
 const MAX_ANSWER = 300
 const EMAIL      = 'hola@vyzon.dev'
 
+class BriefingRequestError extends Error {
+  constructor(readonly code: BriefingErrorCode) {
+    super(code)
+  }
+}
+
+function getErrorCode(payload: unknown): BriefingErrorCode {
+  if (!payload || typeof payload !== 'object' || !('error' in payload)) return 'UNKNOWN'
+  const error = payload.error
+  if (!error || typeof error !== 'object' || !('code' in error) || typeof error.code !== 'string') return 'UNKNOWN'
+
+  return error.code === 'IP_RATE_LIMITED' || error.code === 'GLOBAL_RATE_LIMITED' ||
+    error.code === 'SERVICE_UNAVAILABLE' || error.code === 'REQUEST_TIMEOUT'
+    ? error.code
+    : 'UNKNOWN'
+}
+
+async function getResponseJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
 /* ─── API helpers ────────────────────────────────────────────────────────── */
 
 async function callValidate(brief: string, locale: string) {
@@ -44,8 +70,9 @@ async function callValidate(brief: string, locale: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: brief, locale, step: 'validate' }),
   })
-  if (!res.ok) throw new Error(`validate ${res.status}`)
-  return res.json() as Promise<{ sufficient: boolean; ack: string; questions: string[] }>
+  const payload = await getResponseJson(res)
+  if (!res.ok) throw new BriefingRequestError(getErrorCode(payload))
+  return payload as { sufficient: boolean; ack: string; questions: string[] }
 }
 
 async function callGenerate(brief: string, history: string, locale: string) {
@@ -54,8 +81,9 @@ async function callGenerate(brief: string, history: string, locale: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: brief, history, locale, step: 'generate' }),
   })
-  if (!res.ok) throw new Error(`generate ${res.status}`)
-  return res.json() as Promise<{ document: TechnicalDocument }>
+  const payload = await getResponseJson(res)
+  if (!res.ok) throw new BriefingRequestError(getErrorCode(payload))
+  return payload as { document: TechnicalDocument }
 }
 
 /* ─── CodeRainCanvas ─────────────────────────────────────────────────────
@@ -183,6 +211,7 @@ export function BriefingSection() {
   const [answers,       setAnswers]       = useState<[string, string]>(['', ''])
   const [document,      setDocument]      = useState<TechnicalDocument | null>(null)
   const [isTyping,      setIsTyping]      = useState(false)
+  const [errorCode,     setErrorCode]     = useState<BriefingErrorCode>('UNKNOWN')
 
   /* Refs */
   const sectionRef  = useRef<HTMLElement>(null)
@@ -271,8 +300,8 @@ export function BriefingSection() {
         })
         setFlowState('questions')
       }
-    } catch (err) {
-      console.error('[BriefingSection validate]', err)
+    } catch (error: unknown) {
+      setErrorCode(error instanceof BriefingRequestError ? error.code : 'UNKNOWN')
       setFlowState('error')
     }
   }
@@ -295,8 +324,8 @@ export function BriefingSection() {
       const gen = await callGenerate(brief.trim(), history, locale)
       setDocument(gen.document)
       setFlowState('document')
-    } catch (err) {
-      console.error('[BriefingSection generate]', err)
+    } catch (error: unknown) {
+      setErrorCode(error instanceof BriefingRequestError ? error.code : 'UNKNOWN')
       setFlowState('error')
     }
   }
@@ -306,6 +335,7 @@ export function BriefingSection() {
     setAnswers(['', ''])
     setQuestionsData(null)
     setDocument(null)
+    setErrorCode('UNKNOWN')
     setFlowState('idle')
   }
 
@@ -489,7 +519,13 @@ export function BriefingSection() {
           {/* ── ERROR ── */}
           {flowState === 'error' && (
             <div className="px-6 py-6 space-y-4">
-              <p className="font-mono text-mono-sm text-error">{t('errorMessage')}</p>
+              <p className="font-mono text-mono-sm text-error">
+                {errorCode === 'IP_RATE_LIMITED'
+                  ? (locale === 'es' ? 'Alcanzaste el límite de pruebas. Volvé en un rato.' : 'You reached the trial limit. Please come back later.')
+                  : errorCode === 'GLOBAL_RATE_LIMITED'
+                    ? (locale === 'es' ? 'La demo alcanzó su límite diario. Volvé mañana.' : 'The demo reached its daily limit. Please come back tomorrow.')
+                    : t('errorMessage')}
+              </p>
               <button
                 onClick={handleReset}
                 className="font-mono text-[11px] uppercase tracking-widest text-bone/50 hover:text-bone transition-colors duration-200"
