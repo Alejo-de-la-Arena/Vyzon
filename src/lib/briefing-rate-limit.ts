@@ -27,12 +27,28 @@ function getLimiters(): Limiters | null {
   }
 
   const redis = Redis.fromEnv()
-  const common = { redis, analytics: true, ephemeralCache: false }
-
   limiters = {
-    hourly: new Ratelimit({ ...common, prefix: 'vyzon:briefing:ip:hourly', limiter: Ratelimit.slidingWindow(3, '1 h') }),
-    daily: new Ratelimit({ ...common, prefix: 'vyzon:briefing:ip:daily', limiter: Ratelimit.slidingWindow(10, '24 h') }),
-    global: new Ratelimit({ ...common, prefix: 'vyzon:briefing:global:daily', limiter: Ratelimit.slidingWindow(50, '24 h') }),
+    hourly: new Ratelimit({
+      redis,
+      analytics: true,
+      ephemeralCache: false,
+      prefix: 'vyzon:briefing:ip:hourly',
+      limiter: Ratelimit.slidingWindow(3, '1 h'),
+    }),
+    daily: new Ratelimit({
+      redis,
+      analytics: true,
+      ephemeralCache: false,
+      prefix: 'vyzon:briefing:ip:daily',
+      limiter: Ratelimit.slidingWindow(10, '24 h'),
+    }),
+    global: new Ratelimit({
+      redis,
+      analytics: true,
+      ephemeralCache: false,
+      prefix: 'vyzon:briefing:global:daily',
+      limiter: Ratelimit.slidingWindow(50, '24 h'),
+    }),
   }
 
   return limiters
